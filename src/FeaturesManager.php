@@ -546,25 +546,27 @@ class FeaturesManager implements FeaturesManagerInterface {
   protected function getConfigDependency(ConfigurationItem $config, $module_list = array()) {
     $dependencies = [];
     $type = $config->getType();
-    if ($type != FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG) {
-      $provider = $this->entityTypeManager->getDefinition($type)->getProvider();
-      // Ensure the provider is an installed module and not, for example, 'core'
-      if (isset($module_list[$provider])) {
-        $dependencies[] = $provider;
-      }
 
-      // For configuration in the InstallStorage::CONFIG_INSTALL_DIRECTORY
-      // directory, set any module dependencies of the configuration item
-      // as package dependencies.
-      // As its name implies, the core-provided
-      // InstallStorage::CONFIG_OPTIONAL_DIRECTORY should not create
-      // dependencies.
-      if ($config->getSubdirectory() === InstallStorage::CONFIG_INSTALL_DIRECTORY &&
-        isset($config->getData()['dependencies']['module'])
-      ) {
-        $dependencies = array_merge($dependencies, $config->getData()['dependencies']['module']);
-      }
+    if ($type !== FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG) {
+      $dependencies[] = $this->entityTypeManager->getDefinition($type)->getProvider();
     }
+
+    // For configuration in the InstallStorage::CONFIG_INSTALL_DIRECTORY
+    // directory, set any module dependencies of the configuration item
+    // as package dependencies.
+    // As its name implies, the core-provided
+    // InstallStorage::CONFIG_OPTIONAL_DIRECTORY should not create
+    // dependencies.
+    if ($config->getSubdirectory() === InstallStorage::CONFIG_INSTALL_DIRECTORY &&
+      isset($config->getData()['dependencies']['module'])
+    ) {
+      $dependencies = array_merge($dependencies, $config->getData()['dependencies']['module']);
+    }
+
+    // Only return dependencies for installed modules and not, for example,
+    // 'core'.
+    $dependencies = array_intersect($dependencies, array_keys($module_list));
+
     return $dependencies;
   }
 
