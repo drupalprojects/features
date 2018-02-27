@@ -31,7 +31,9 @@ class FeaturesUIController implements ContainerInjectionInterface {
    * Constructs a new FeaturesUIController object.
    *
    * @param \Drupal\features\FeaturesManagerInterface $features_manager
-   *    The features manager.
+   *   The features manager.
+   * @param \Drupal\features\FeaturesAssignerInterface $assigner
+   *   The configuration assignment methods manager.
    */
   public function __construct(FeaturesManagerInterface $features_manager, FeaturesAssignerInterface $assigner) {
     $this->featuresManager = $features_manager;
