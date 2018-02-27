@@ -245,23 +245,33 @@ class FeaturesManagerTest extends UnitTestCase {
           'example.config2',
           'example.config3',
           'example.config4',
+          'example.config5',
         ],
       ],
-    ]))->setPackage('package');
-
+    ]))
+      ->setSubdirectory(InstallStorage::CONFIG_INSTALL_DIRECTORY)
+      ->setPackage('package');
     $config_collection['example.config2'] =  (new ConfigurationItem('example.config2', [
       'dependencies' => [],
     ]))
+      ->setSubdirectory(InstallStorage::CONFIG_INSTALL_DIRECTORY)
       ->setPackage('package2')
       ->setProvider('my_feature');
     $config_collection['example.config3'] = (new ConfigurationItem('example.config3', [
       'dependencies' => [],
     ]))
+      ->setSubdirectory(InstallStorage::CONFIG_INSTALL_DIRECTORY)
       ->setProvider('my_other_feature');
     $config_collection['example.config4'] = (new ConfigurationItem('example.config3', [
       'dependencies' => [],
     ]))
+      ->setSubdirectory(InstallStorage::CONFIG_INSTALL_DIRECTORY)
       ->setProvider(static::PROFILE_NAME);
+    $config_collection['example.config5'] =  (new ConfigurationItem('example.config5', [
+      'dependencies' => [],
+    ]))
+      ->setSubdirectory(InstallStorage::CONFIG_OPTIONAL_DIRECTORY)
+      ->setPackage('package3');
     return $config_collection;
   }
 
@@ -274,6 +284,7 @@ class FeaturesManagerTest extends UnitTestCase {
     // Provide a bundle without any prefix.
     $bundle->getFullName('package')->willReturn('package');
     $bundle->getFullName('package2')->willReturn('package2');
+    $bundle->getFullName('package3')->willReturn('package3');
     $bundle->isDefault()->willReturn(TRUE);
     $assigner->getBundle('')->willReturn($bundle->reveal());
     // Use the wrapper because we need ::drupalGetProfile().
@@ -293,6 +304,11 @@ class FeaturesManagerTest extends UnitTestCase {
         'dependencies' => [],
         'bundle' => '',
       ]),
+      'package3' => new Package('package3', [
+        'config' => ['example.config5'],
+        'dependencies' => [],
+        'bundle' => '',
+      ]),
     ];
 
     $features_manager->setPackages($packages);
@@ -306,6 +322,9 @@ class FeaturesManagerTest extends UnitTestCase {
     // my_package.
     // Because package assignments take precedence over providing_feature ones,
     // package2 should have been assigned rather than my_feature.
+    // Because it is assigned to the InstallStorage::CONFIG_OPTIONAL_DIRECTORY
+    // subdirectory, example.config5 does not create a dependency on its
+    // providing feature, package3.
     $this->assertEquals(['my_other_feature', 'package2'], $packages['package']->getDependencies());
     $this->assertEquals([], $packages['package2']->getDependencies());
   }
@@ -319,6 +338,7 @@ class FeaturesManagerTest extends UnitTestCase {
     // Provide a bundle without any prefix.
     $bundle->getFullName('package')->willReturn('giraffe_package');
     $bundle->getFullName('package2')->willReturn('giraffe_package2');
+    $bundle->getFullName('package3')->willReturn('giraffe_package3');
     $bundle->getFullName('giraffe_package')->willReturn('giraffe_package');
     $bundle->getFullName('giraffe_package2')->willReturn('giraffe_package2');
     $bundle->isDefault()->willReturn(FALSE);
@@ -340,6 +360,11 @@ class FeaturesManagerTest extends UnitTestCase {
         'dependencies' => [],
         'bundle' => 'giraffe',
       ]),
+      'package3' => new Package('package3', [
+        'config' => ['example.config5'],
+        'dependencies' => [],
+        'bundle' => 'giraffe',
+      ]),
     ];
 
     $features_manager->setPackages($packages);
@@ -353,6 +378,9 @@ class FeaturesManagerTest extends UnitTestCase {
     // my_package.
     // Because package assignments take precedence over providing_feature ones,
     // package2 should have been assigned rather than my_feature.
+    // Because it is assigned to the InstallStorage::CONFIG_OPTIONAL_DIRECTORY
+    // subdirectory, example.config5 does not create a dependency on its
+    // providing feature, package3.
     $expected = ['giraffe_package2', 'my_other_feature'];
     $this->assertEquals($expected, $packages['giraffe_package']->getDependencies());
   }

@@ -769,7 +769,14 @@ class FeaturesManager implements FeaturesManagerInterface {
       foreach ($package->getConfig() as $item_name) {
         if (!empty($config_collection[$item_name]->getData()['dependencies']['config'])) {
           foreach ($config_collection[$item_name]->getData()['dependencies']['config'] as $dependency_name) {
-            if (isset($config_collection[$dependency_name])) {
+            if (isset($config_collection[$dependency_name]) &&
+              // For configuration in the
+              // InstallStorage::CONFIG_INSTALL_DIRECTORY directory, set any
+              // package dependencies of the configuration item.
+              // As its name implies, the core-provided
+              // InstallStorage::CONFIG_OPTIONAL_DIRECTORY should not create
+              // dependencies.
+              ($config_collection[$dependency_name]->getSubdirectory() === InstallStorage::CONFIG_INSTALL_DIRECTORY)) {
               // If the required item is assigned to one of the packages, add
               // a dependency on that package.
               $dependency_set = FALSE;
