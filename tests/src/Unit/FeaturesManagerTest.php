@@ -286,7 +286,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $bundle->getFullName('package2')->willReturn('package2');
     $bundle->getFullName('package3')->willReturn('package3');
     $bundle->isDefault()->willReturn(TRUE);
-    $assigner->getBundle('')->willReturn($bundle->reveal());
+    $assigner->getBundle()->willReturn($bundle->reveal());
     // Use the wrapper because we need ::drupalGetProfile().
     $features_manager = new TestFeaturesManager($this->root, $this->entityTypeManager, $this->configFactory, $this->configStorage, $this->configManager, $this->moduleHandler, $this->configReverter);
     $features_manager->setAssigner($assigner->reveal());
