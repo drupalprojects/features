@@ -253,7 +253,6 @@ class FeaturesAssigner implements FeaturesAssignerInterface {
     if (isset($session)) {
       $session->set('features_current_bundle', $bundle->getMachineName());
     }
-    \Drupal::state()->set('features.current_bundle', $bundle->getMachineName());
     return $bundle;
   }
 
@@ -421,11 +420,8 @@ class FeaturesAssigner implements FeaturesAssignerInterface {
   public function loadBundle($machine_name = NULL) {
     if (!isset($machine_name)) {
       $session = \Drupal::request()->getSession();
-      if (isset($session) && ($session_value = $session->get('features_current_bundle'))) {
-        $machine_name = $session_value;
-      }
-      else {
-        $machine_name = \Drupal::state()->get('features.current_bundle',  FeaturesBundleInterface::DEFAULT_BUNDLE) ;
+      if (isset($session)) {
+        $machine_name = isset($session) ? $session->get('features_current_bundle', FeaturesBundleInterface::DEFAULT_BUNDLE) : FeaturesBundleInterface::DEFAULT_BUNDLE;
       }
     }
     $bundle = $this->getBundle($machine_name);

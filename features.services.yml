@@ -36,9 +36,3 @@ services:
     decorates: config.installer
     decoration_priority: 9
     arguments: ['@features.config.installer.inner', '@features.manager', '@config.factory', '@config.storage', '@config.typed', '@config.manager', '@event_dispatcher']
-
-  features.config_save_subscriber:
-    class: Drupal\features\EventSubscriber\ConfigSaveSubscriber
-    arguments: ['@entity_type.manager', '@features_assigner']
-    tags:
-      - { name: event_subscriber }

@@ -6,14 +6,6 @@
  */
 
 /**
- * Implements hook_uninstall().
- */
-function features_uninstall() {
-  // Remove state setting.
-  \Drupal::state()->delete('features.current_bundle');
-}
-
-/**
  * Rebuild the container to add a parameter to the features.manager service.
  */
 function features_update_8300() {
