@@ -741,6 +741,7 @@ EOT
 
   /**
    * @covers ::prepareFiles
+   * @covers ::addInfoFile
    */
   public function testPrepareFiles() {
     $packages = [];
@@ -749,12 +750,22 @@ EOT
       'name' => 'Test feature',
     ]);
 
+    $packages['test_feature2'] = new Package('test_feature2', [
+      'config' => ['test_config2'],
+      'name' => 'Test feature 2',
+      'type' => 'profile',
+      'excluded' => ['my_config'],
+      'required' => ['test_config2'],
+    ]);
+
     $config_collection = [];
     $config_collection['test_config'] = new ConfigurationItem('test_config', ['foo' => 'bar']);
+    $config_collection['test_config2'] = new ConfigurationItem('test_config2', ['foo' => 'bar']);
 
     $this->featuresManager->setConfigCollection($config_collection);
     $this->featuresManager->prepareFiles($packages);
 
+    // Test test_feature package.
     $files = $packages['test_feature']->getFiles();
     $this->assertCount(3, $files);
     $this->assertEquals('test_feature.info.yml', $files['info']['filename']);
@@ -772,6 +783,14 @@ EOT
 
     $this->assertEquals('test_feature.features.yml', $files['features']['filename']);
     $this->assertEquals(Yaml::encode(TRUE), $files['features']['string']);
+
+    // Test test_feature2 package.
+    $files = $packages['test_feature2']->getFiles();
+
+    $this->assertEquals(Yaml::encode([
+      'excluded' => ['my_config'],
+      'required' => ['test_config2'],
+    ]), $files['features']['string']);
   }
 
   /**
