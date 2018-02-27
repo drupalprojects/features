@@ -763,6 +763,7 @@ class FeaturesManager implements FeaturesManagerInterface {
     }
 
     $config_collection = $this->getConfigCollection();
+    $module_list = $this->moduleHandler->getModuleList();
 
     /** @var \Drupal\features\Package[] $packages */
     foreach ($packages as $package) {
@@ -783,7 +784,7 @@ class FeaturesManager implements FeaturesManagerInterface {
               if ($dependency_package = $config_collection[$dependency_name]->getPackage()) {
                 $package_name = $bundle->getFullName($dependency_package);
                 // Package shouldn't be dependent on itself.
-                if ($package_name && array_key_exists($package_name, $packages) && $package_name != $package->getMachineName()) {
+                if ($package_name && array_key_exists($package_name, $packages) && $package_name != $package->getMachineName() && isset($module_list[$package_name])) {
                   $package->setDependencies($this->mergeUniqueItems($package->getDependencies(), [$package_name]));
                   $dependency_set = TRUE;
                 }
@@ -793,7 +794,7 @@ class FeaturesManager implements FeaturesManagerInterface {
               if (!$dependency_set && $extension_name = $config_collection[$dependency_name]->getProvider()) {
                 // No extension should depend on the install profile.
                 $package_name = $bundle->getFullName($package->getMachineName());
-                if ($extension_name != $package_name && $extension_name != $this->drupalGetProfile()) {
+                if ($extension_name != $package_name && $extension_name != $this->drupalGetProfile() && isset($module_list[$extension_name])) {
                   $package->setDependencies($this->mergeUniqueItems($package->getDependencies(), [$extension_name]));
                 }
               }
