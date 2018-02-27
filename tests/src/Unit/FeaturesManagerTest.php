@@ -522,6 +522,32 @@ class FeaturesManagerTest extends UnitTestCase {
   }
 
   /**
+   * @covers ::assignConfigPackage
+   */
+  public function testAssignConfigPackageWithPackageExcludedConfig() {
+    $config_collection = [
+      'test_config' => new ConfigurationItem('test_config', []),
+      'test_config2' => new ConfigurationItem('test_config2', [], ['packageExcluded' => ['test_package']]),
+    ];
+    $this->featuresManager->setConfigCollection($config_collection);
+
+    $feature_assigner = $this->prophesize(FeaturesAssignerInterface::class);
+    $feature_assigner->getBundle(NULL)->willReturn(new FeaturesBundle(['machine_name' => 'default'], 'features_bundle'));
+    $this->featuresManager->setAssigner($feature_assigner->reveal());
+
+    $package = new Package('test_package');
+    $original_package = clone $package;
+
+    $this->featuresManager->setPackage($package);
+    $this->featuresManager->assignConfigPackage('test_package', ['test_config', 'test_config2']);
+    $this->assertEquals(['test_config'], $this->featuresManager->getPackage('test_package')->getConfig(), 'just assign new packages');
+
+    $this->featuresManager->setPackage($original_package);
+    $this->featuresManager->assignConfigPackage('test_package', ['test_config', 'test_config2'], TRUE);
+    $this->assertEquals(['test_config', 'test_config2'], $this->featuresManager->getPackage('test_package')->getConfig(), 'just assign new packages');
+  }
+
+  /**
    * @covers ::initPackageFromExtension
    * @covers ::getPackageObject
    */
