@@ -188,6 +188,55 @@ class FeaturesManagerTest extends UnitTestCase {
     $this->assertEquals($package, $this->featuresManager->getPackage('foo'));
   }
 
+  /**
+   * @covers ::filterPackages
+   */
+  public function testGetPackages() {
+    $packages = [
+      'package' => new Package('package', [
+        'bundle' => '',
+        'status' => FeaturesManagerInterface::STATUS_NO_EXPORT,
+      ]),
+      'package2' => new Package('package2', [
+        'bundle' => '',
+        'status' => FeaturesManagerInterface::STATUS_UNINSTALLED,
+      ]),
+      'package3' => new Package('package3', [
+        'bundle' => 'my_bundle',
+        'status' => FeaturesManagerInterface::STATUS_NO_EXPORT,
+      ]),
+      'package4' => new Package('package4', [
+        'bundle' => 'my_bundle',
+        'status' => FeaturesManagerInterface::STATUS_UNINSTALLED,
+      ]),
+    ];
+
+    // Filter for the default bundle.
+    $filtered_packages = $this->featuresManager->filterPackages($packages, FeaturesBundleInterface::DEFAULT_BUNDLE);
+    $this->assertEquals(['package', 'package2'], array_keys($filtered_packages));
+
+    // Filter for a custom bundle.
+    $filtered_packages = $this->featuresManager->filterPackages($packages, 'my_bundle');
+    $this->assertEquals(['package3', 'package4'], array_keys($filtered_packages));
+
+    // Filter for a non-matching bundle.
+    $filtered_packages = $this->featuresManager->filterPackages($packages, 'some_bundle');
+    $this->assertEquals([], array_keys($filtered_packages));
+
+    // Filter for the default bundle removing only exported.
+    $filtered_packages = $this->featuresManager->filterPackages($packages, FeaturesBundleInterface::DEFAULT_BUNDLE, TRUE);
+    $this->assertEquals(['package'], array_keys($filtered_packages));
+
+    // Filter for a custom bundle removing only exported.
+    $filtered_packages = $this->featuresManager->filterPackages($packages, 'my_bundle', TRUE);
+    $this->assertEquals(['package3'], array_keys($filtered_packages));
+
+    // Filter for a non-matching bundle removing only exported.
+    $filtered_packages = $this->featuresManager->filterPackages($packages, 'some_bundle', TRUE);
+    $this->assertEquals([], array_keys($filtered_packages));
+  }
+
+
   protected function getAssignInterPackageDependenciesConfigCollection() {
     $config_collection = [];
     $config_collection['example.config'] = (new ConfigurationItem('example.config', [
@@ -457,7 +506,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $this->featuresManager->setConfigCollection($config_collection);
 
     $feature_assigner = $this->prophesize(FeaturesAssignerInterface::class);
-    $feature_assigner->getBundle(NULL)->willReturn(new FeaturesBundle(['machine_name' => 'default'], 'features_bundle'));
+    $feature_assigner->getBundle(NULL)->willReturn(new FeaturesBundle(['machine_name' => FeaturesBundleInterface::DEFAULT_BUNDLE], 'features_bundle'));
     $this->featuresManager->setAssigner($feature_assigner->reveal());
 
     $package = new Package('test_package');

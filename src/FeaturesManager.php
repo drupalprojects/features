@@ -326,10 +326,13 @@ class FeaturesManager implements FeaturesManagerInterface {
       // A package matches the namespace if:
       // - it's prefixed with the namespace, or
       // - it's assigned to a bundle named for the namespace, or
-      // - we're looking only for exported packages and it's not exported.
-      if (empty($namespace) || (strpos($package->getMachineName(), $namespace . '_') === 0) ||
+      // - the namespace is the default bundle and it has an empty bundle, and
+      // - we're not removing only exported packages, or
+      // - we are removing only exported packages and it's not exported.
+      if ((strpos($package->getMachineName(), $namespace . '_') === 0 ||
         ($package->getBundle() && $package->getBundle() === $namespace) ||
-        ($only_exported && $package->getStatus() === FeaturesManagerInterface::STATUS_NO_EXPORT)) {
+        ($namespace === FeaturesBundleInterface::DEFAULT_BUNDLE && empty($package->getBundle()))) &&
+        (!$only_exported || ($package->getStatus() === FeaturesManagerInterface::STATUS_NO_EXPORT))) {
         $result[$key] = $package;
       }
     }
