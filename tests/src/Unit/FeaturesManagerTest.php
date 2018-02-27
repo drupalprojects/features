@@ -540,6 +540,7 @@ class FeaturesManagerTest extends UnitTestCase {
     $assigner = $this->prophesize(FeaturesAssignerInterface::class);
     $bundle = $this->prophesize(FeaturesBundleInterface::class);
     $bundle->isProfilePackage('test_package')->willReturn(FALSE);
+    $bundle->isProfilePackage('test_package2')->willReturn(FALSE);
     $assigner->getBundle(NULL)->willReturn($bundle->reveal());
     $this->featuresManager->setAssigner($assigner->reveal());
 
@@ -554,6 +555,14 @@ class FeaturesManagerTest extends UnitTestCase {
       ]),
       'example3.settings' => new ConfigurationItem('example3.settings', [], [
         'type' => FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG,
+        'subdirectory' => InstallStorage::CONFIG_INSTALL_DIRECTORY,
+      ]),
+      'test_config3' => new ConfigurationItem('test_config3', [
+        'dependencies' => [
+          'module' => ['example2'],
+        ]
+      ], [
+        'subdirectory' => InstallStorage::CONFIG_OPTIONAL_DIRECTORY,
       ]),
     ];
     $this->featuresManager->setConfigCollection($config_collection);
@@ -567,6 +576,15 @@ class FeaturesManagerTest extends UnitTestCase {
     // 'example2' is not returned by ::getModuleList() and so isn't a
     // dependency.
     $this->assertEquals(['example', 'example3', 'my_module'], $this->featuresManager->getPackage('test_package')->getDependencies());
+
+    // Test optional config, which doesn't create module dependencies.
+    $package = new Package('test_package2');
+    $this->featuresManager->setPackage($package);
+
+    $this->featuresManager->assignConfigPackage('test_package2', ['test_config3']);
+
+    $this->assertEquals(['test_config3'], $this->featuresManager->getPackage('test_package2')->getConfig());
+    $this->assertEquals([], $this->featuresManager->getPackage('test_package2')->getDependencies());
   }
 
   /**

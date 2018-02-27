@@ -550,28 +550,28 @@ class FeaturesManager implements FeaturesManagerInterface {
     $dependencies = [];
     $type = $config->getType();
 
-    if ($type === FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG) {
-      $dependencies[] = strtok($config->getName(), '.');
-    }
-    else {
-      $dependencies[] = $this->entityTypeManager->getDefinition($type)->getProvider();
-    }
-
     // For configuration in the InstallStorage::CONFIG_INSTALL_DIRECTORY
-    // directory, set any module dependencies of the configuration item
-    // as package dependencies.
+    // directory, set any dependencies of the configuration item as package
+    // dependencies.
     // As its name implies, the core-provided
     // InstallStorage::CONFIG_OPTIONAL_DIRECTORY should not create
     // dependencies.
-    if ($config->getSubdirectory() === InstallStorage::CONFIG_INSTALL_DIRECTORY &&
-      isset($config->getData()['dependencies']['module'])
-    ) {
-      $dependencies = array_merge($dependencies, $config->getData()['dependencies']['module']);
-    }
+    if ($config->getSubdirectory() === InstallStorage::CONFIG_INSTALL_DIRECTORY) {
+      if ($type === FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG) {
+        $dependencies[] = strtok($config->getName(), '.');
+      }
+      else {
+        $dependencies[] = $this->entityTypeManager->getDefinition($type)->getProvider();
+      }
 
-    // Only return dependencies for installed modules and not, for example,
-    // 'core'.
-    $dependencies = array_intersect($dependencies, array_keys($module_list));
+      if (isset($config->getData()['dependencies']['module'])) {
+        $dependencies = array_merge($dependencies, $config->getData()['dependencies']['module']);
+      }
+
+      // Only return dependencies for installed modules and not, for example,
+      // 'core'.
+      $dependencies = array_intersect($dependencies, array_keys($module_list));
+    }
 
     return $dependencies;
   }
