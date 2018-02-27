@@ -547,7 +547,10 @@ class FeaturesManager implements FeaturesManagerInterface {
     $dependencies = [];
     $type = $config->getType();
 
-    if ($type !== FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG) {
+    if ($type === FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG) {
+      $dependencies[] = strtok($config->getName(), '.');
+    }
+    else {
       $dependencies[] = $this->entityTypeManager->getDefinition($type)->getProvider();
     }
 

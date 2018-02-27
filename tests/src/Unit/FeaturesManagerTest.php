@@ -108,7 +108,7 @@ class FeaturesManagerTest extends UnitTestCase {
     // but we just need ::getConfigDependency isset($module_list[$provider]).
     $this->moduleHandler->expects($this->any())
       ->method('getModuleList')
-      ->willReturn(['my_module' => true, 'example' => true]);
+      ->willReturn(['my_module' => true, 'example' => true, 'example3' => true]);
     $this->configReverter = $this->getMock(ConfigRevertInterface::class);
     $this->configReverter->expects($this->any())
       ->method('import')
@@ -429,18 +429,21 @@ class FeaturesManagerTest extends UnitTestCase {
       ], [
         'subdirectory' => InstallStorage::CONFIG_INSTALL_DIRECTORY,
       ]),
+      'example3.settings' => new ConfigurationItem('example3.settings', [], [
+        'type' => FeaturesManagerInterface::SYSTEM_SIMPLE_CONFIG,
+      ]),
     ];
     $this->featuresManager->setConfigCollection($config_collection);
 
     $package = new Package('test_package');
     $this->featuresManager->setPackage($package);
 
-    $this->featuresManager->assignConfigPackage('test_package', ['test_config', 'test_config2']);
+    $this->featuresManager->assignConfigPackage('test_package', ['test_config', 'test_config2', 'example3.settings']);
 
-    $this->assertEquals(['test_config', 'test_config2'], $this->featuresManager->getPackage('test_package')->getConfig());
+    $this->assertEquals(['test_config', 'test_config2', 'example3.settings'], $this->featuresManager->getPackage('test_package')->getConfig());
     // 'example2' is not returned by ::getModuleList() and so isn't a
     // dependency.
-    $this->assertEquals(['example', 'my_module'], $this->featuresManager->getPackage('test_package')->getDependencies());
+    $this->assertEquals(['example', 'example3', 'my_module'], $this->featuresManager->getPackage('test_package')->getDependencies());
   }
 
   /**
